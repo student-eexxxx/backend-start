@@ -1,0 +1,21 @@
+### Получить все задачи
+GET http://localhost:5000/api/v1/todos
+
+### Добавить задачу
+POST http://localhost:5000/api/v1/todos
+Content-Type: application/json
+
+{
+  "text": "Тестовая задача из HTTP-клиента"
+}
+
+### Обновить задачу (замени :id на реальный ID)
+PUT http://localhost:5000/api/v1/todos/:id
+Content-Type: application/json
+
+{
+  "isCompleted": true
+}
+
+### Удалить задачу (замени :id на реальный ID)
+DELETE http://localhost:5000/api/v1/todos/:id

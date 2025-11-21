@@ -1,63 +1,112 @@
 const express = require('express');
 const router = express.Router();
+const Todo = require('../models/Todo');
 
-let todos = [
-    { id: 1, text: 'Изучить REST API', isCompleted: false },
-    { id: 2, text: 'Подключить фронтенд', isCompleted: true }
-];
-let nextId = 3;
+router.get('/', async (req, res) => {
+    try {
+        const completed = req.query.completed;
 
-router.get('/', (req, res) => {
-    const { completed } = req.query;
+        let filter = {};
+        if (completed !== undefined) {
+            filter.completed = completed === 'true';
+        }
 
-    let filteredTodos = todos;
+        const todos = await Todo.find(filter);
 
-    if (completed !== undefined) {
-        const isCompleted = completed === 'true';
-        filteredTodos = todos.filter(todo => todo.isCompleted === isCompleted);
+        const formattedTodos = todos.map(todo => ({
+            id: todo._id.toString(),
+            text: todo.title,
+            isCompleted: todo.completed
+        }));
+
+        res.status(200).json(formattedTodos);
+    } catch (err) {
+        console.error('GET Error:', err);
+        res.status(500).json({ error: 'Ошибка при получении задач' });
     }
-
-    res.status(200).json(filteredTodos);
 });
 
-router.get('/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const todo = todos.find(t => t.id === id);
-    if (!todo) {
-        return res.status(404).json({ error: 'Задача не найдена' });
+router.post('/', async (req, res) => {
+    try {
+        const { text } = req.body;
+        console.log('POST Data:', req.body);
+
+        if (!text) {
+            return res.status(400).json({ error: 'Текст задачи обязателен' });
+        }
+
+        const newTodo = new Todo({
+            title: text,
+            owner: "test-user" // Просто добавляем фиксированного владельца
+        });
+        await newTodo.save();
+
+        res.status(201).json({
+            id: newTodo._id.toString(),
+            text: newTodo.title,
+            isCompleted: newTodo.completed
+        });
+    } catch (err) {
+        console.error('POST Error:', err);
+        res.status(500).json({ error: 'Ошибка при создании задачи' });
     }
-    res.status(200).json(todo);
 });
 
-router.post('/', (req, res) => {
-    const { text } = req.body;
-    if (!text) {
-        return res.status(400).json({ error: 'Текст задачи обязателен' });
+router.put('/:id', async (req, res) => {
+    try {
+        const { text, isCompleted } = req.body;
+        console.log('PUT Data:', req.body);
+
+        const todo = await Todo.findById(req.params.id);
+        if (!todo) {
+            return res.status(404).json({ error: 'Задача не найдена' });
+        }
+
+        if (text !== undefined) todo.title = text;
+        if (isCompleted !== undefined) todo.completed = isCompleted;
+
+        await todo.save();
+
+        res.status(200).json({
+            id: todo._id.toString(),
+            text: todo.title,
+            isCompleted: todo.completed
+        });
+    } catch (err) {
+        console.error('PUT Error:', err);
+        res.status(500).json({ error: 'Ошибка при обновлении задачи' });
     }
-    const newTodo = { id: nextId++, text, isCompleted: false };
-    todos.push(newTodo);
-    res.status(201).json(newTodo);
 });
 
-router.put('/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const todoIndex = todos.findIndex(t => t.id === id);
-    if (todoIndex === -1) {
-        return res.status(404).json({ error: 'Задача не найдена' });
+router.delete('/:id', async (req, res) => {
+    try {
+        const result = await Todo.deleteOne({ _id: req.params.id });
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: 'Задача не найдена' });
+        }
+        res.status(204).send();
+    } catch (err) {
+        console.error('DELETE Error:', err);
+        res.status(500).json({ error: 'Ошибка при удалении задачи' });
     }
-    const { text, isCompleted } = req.body;
-    todos[todoIndex] = { ...todos[todoIndex], text, isCompleted };
-    res.status(200).json(todos[todoIndex]);
 });
 
-router.delete('/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const todoIndex = todos.findIndex(t => t.id === id);
-    if (todoIndex === -1) {
-        return res.status(404).json({ error: 'Задача не найдена' });
+router.get('/stats', async (req, res) => {
+    try {
+        const stats = await Todo.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: 1 },
+                    completed: { $sum: { $cond: ['$completed', 1, 0] } },
+                    active: { $sum: { $cond: ['$completed', 0, 1] } }
+                }
+            }
+        ]);
+        res.json(stats[0] || { total: 0, completed: 0, active: 0 });
+    } catch (err) {
+        res.status(500).json({ error: 'Ошибка при получении статистики' });
     }
-    todos.splice(todoIndex, 1);
-    res.status(204).send();
 });
 
 module.exports = router;
