@@ -12,7 +12,7 @@ const authMiddleware = require('./middleware/auth');
 console.log('✅ 2. AuthMiddleware loaded, type:', typeof authMiddleware);
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -24,7 +24,19 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('✅ 4. MongoDB подключена'))
     .catch(err => console.error('❌ 4. Ошибка подключения:', err));
 
-app.use(cors());
+// Настройка CORS для продакшена и разработки
+const corsOptions = {
+    origin: process.env.NODE_ENV === 'production'
+        ? ['https://my-todo-list-g9k0rzu85-egorvot2007-3398s-projects.vercel.app']
+        : ['http://localhost:3000', 'http://localhost:3001'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
+
+// Убираем проблемный options handler - CORS middleware сам обработает OPTIONS
+
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -40,10 +52,35 @@ console.log('✅ 7. AuthMiddleware applied to /api/v1/todos');
 app.use('/api/auth', authRouter);
 console.log('✅ 8. All routes configured');
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
 app.get('/', (req, res) => {
-    res.send('Привет, мир!');
+    res.json({
+        message: 'Привет, мир!',
+        version: '1.0.0',
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
+
+// Обработка несуществующих маршрутов - ИСПРАВЛЕНО: используем строку вместо *
+app.use((req, res) => {
+    res.status(404).json({ error: 'Маршрут не найден' });
+});
+
+// Глобальный обработчик ошибок
+app.use((err, req, res, next) => {
+    console.error('❌ Global error handler:', err);
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 9. Сервер запущен на http://localhost:${PORT}`);
+    console.log(`🚀 9. Сервер запущен на порту ${PORT}`);
+    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
 });

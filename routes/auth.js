@@ -1,6 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const router = express.Router();
 
@@ -93,6 +93,17 @@ router.post('/refresh', async (req, res) => {
             return res.status(403).json({ error: 'Неверный refresh token' });
         }
 
+        // ✅ Генерируем НОВЫЙ refresh token (ротация токенов)
+        const newRefreshToken = jwt.sign(
+            { userId: user._id },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        // Сохраняем новый refresh token
+        user.refreshToken = newRefreshToken;
+        await user.save();
+
         // Выдаём новый access token
         const newAccessToken = jwt.sign(
             { userId: user._id },
@@ -100,7 +111,10 @@ router.post('/refresh', async (req, res) => {
             { expiresIn: '15m' }
         );
 
-        res.json({ accessToken: newAccessToken });
+        res.json({
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken // ✅ Отправляем новый refresh token
+        });
     } catch (err) {
         console.error(err);
         res.status(403).json({ error: 'Неверный или просроченный refresh token' });
