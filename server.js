@@ -29,9 +29,10 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Настройка CORS для продакшена и разработки
 const corsOptions = {
-    origin: process.env.NODE_ENV === 'production'
-        ? ['https://my-todo-list-g9k0rzu85-egorvot2007-3398s-projects.vercel.app']
-        : ['http://localhost:3000', 'http://localhost:3001'],
+    origin: [
+        'https://my-todo-list-coral.vercel.app/',
+        'http://localhost:3000'
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
