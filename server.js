@@ -21,8 +21,11 @@ app.use((req, res, next) => {
 
 console.log('🔄 3. Connecting to MongoDB...');
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('✅ 4. MongoDB подключена'))
-    .catch(err => console.error('❌ 4. Ошибка подключения:', err));
+    .then(() => console.log('MongoDB connected successfully'))
+    .catch(err => {
+        console.log('MongoDB connection error:', err.message);
+        process.exit(1);
+    });
 
 // Настройка CORS для продакшена и разработки
 const corsOptions = {
