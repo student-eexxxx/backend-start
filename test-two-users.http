@@ -1,0 +1,68 @@
+### 1. Регистрация НОВОГО пользователя (сообщи какой email использовал)
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "brandnew@example.com",
+  "password": "password123"
+}
+
+### 2. Логин НОВОГО пользователя - получишь НОВЫЙ токен
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "brandnew@example.com",
+  "password": "password123"
+}
+
+### Создать задачу для пользователя 1
+POST http://localhost:5000/api/v1/todos
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIxYWI1MWE5YzRlNTc2N2ZiYTQ3ZGMiLCJpYXQiOjE3NjM4MTQyNDgsImV4cCI6MTc2MzgxNzg0OH0.yZt2BGAIsI4jaPssnp3eX-1P2TmOYQr04sXZ1PfY-gw
+Content-Type: application/json
+
+{
+  "text": "Задача Ивана"
+}
+
+### Получить задачи пользователя 1
+GET http://localhost:5000/api/v1/todos
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIxYWI1MWE5YzRlNTc2N2ZiYTQ3ZGMiLCJpYXQiOjE3NjM4MTQyNDgsImV4cCI6MTc2MzgxNzg0OH0.yZt2BGAIsI4jaPssnp3eX-1P2TmOYQr04sXZ1PfY-gw
+
+### ===== ПОЛЬЗОВАТЕЛЬ 2 =====
+
+### Регистрация пользователя 2
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "olga@example.com",
+  "password": "password123"
+}
+
+### Логин пользователя 2
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "olga@example.com",
+  "password": "password123"
+}
+
+### Создать задачу для пользователя 2
+POST http://localhost:5000/api/v1/todos
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIxYWRhYWE5YzRlNTc2N2ZiYTQ3ZTQiLCJpYXQiOjE3NjM4MTQ4MzYsImV4cCI6MTc2MzgxODQzNn0.ryzSFI6Kml8qdTRtbooyjaYTfqyba20ZtMZ9P6e3AMk
+Content-Type: application/json
+
+{
+  "text": "Задача Ольги"
+}
+
+### Получить задачи пользователя 2
+GET http://localhost:5000/api/v1/todos
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIxYWRhYWE5YzRlNTc2N2ZiYTQ3ZTQiLCJpYXQiOjE3NjM4MTQ4MzYsImV4cCI6MTc2MzgxODQzNn0.ryzSFI6Kml8qdTRtbooyjaYTfqyba20ZtMZ9P6e3AMk
+
+### ===== ПРОВЕРКА БЕЗ ТОКЕНА =====
+
+### Попытка получить задачи без токена (должна быть ошибка)
+GET http://localhost:5000/api/v1/todos

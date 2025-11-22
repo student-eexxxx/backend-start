@@ -1,0 +1,3 @@
+### Получить задачи (С токеном - успешный доступ)
+GET http://localhost:5000/api/v1/todos
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIxOWE5NzIxNGYwOGVlMTdiNDhlM2MiLCJpYXQiOjE3NjM4MTAwMTQsImV4cCI6MTc2MzgxMzYxNH0.Oym3qL6FEzjo8WxXpbbAP9hB5GKQ-eG-9OJL5L-Qeis

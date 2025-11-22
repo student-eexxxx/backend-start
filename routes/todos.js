@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Todo = require('../models/Todo');
+
 
 router.get('/', async (req, res) => {
     try {
         const completed = req.query.completed;
 
-        let filter = {};
+        let filter = { owner: req.user.userId };
         if (completed !== undefined) {
             filter.completed = completed === 'true';
         }
@@ -37,7 +39,7 @@ router.post('/', async (req, res) => {
 
         const newTodo = new Todo({
             title: text,
-            owner: "test-user" // Просто добавляем фиксированного владельца
+            owner: req.user.userId
         });
         await newTodo.save();
 
@@ -57,7 +59,7 @@ router.put('/:id', async (req, res) => {
         const { text, isCompleted } = req.body;
         console.log('PUT Data:', req.body);
 
-        const todo = await Todo.findById(req.params.id);
+        const todo = await Todo.findOne({ _id: req.params.id, owner: req.user.userId });
         if (!todo) {
             return res.status(404).json({ error: 'Задача не найдена' });
         }
@@ -80,7 +82,7 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
     try {
-        const result = await Todo.deleteOne({ _id: req.params.id });
+        const result = await Todo.deleteOne({ _id: req.params.id, owner: req.user.userId });
         if (result.deletedCount === 0) {
             return res.status(404).json({ error: 'Задача не найдена' });
         }
@@ -95,6 +97,9 @@ router.get('/stats', async (req, res) => {
     try {
         const stats = await Todo.aggregate([
             {
+                $match: { owner: new mongoose.Types.ObjectId(req.user.userId) } // ← ИСПРАВЬ ЭТО
+            },
+            {
                 $group: {
                     _id: null,
                     total: { $sum: 1 },
@@ -105,6 +110,7 @@ router.get('/stats', async (req, res) => {
         ]);
         res.json(stats[0] || { total: 0, completed: 0, active: 0 });
     } catch (err) {
+        console.error('Stats error:', err);
         res.status(500).json({ error: 'Ошибка при получении статистики' });
     }
 });

@@ -1,0 +1,25 @@
+### Регистрация НОВОГО пользователя
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "testrefresh2025@example.com",
+  "password": "password123"
+}
+
+### Логин НОВОГО пользователя
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "testrefresh2025@example.com",
+  "password": "password123"
+}
+
+### 3. Обновление access токена
+POST http://localhost:5000/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OTIxYjg2NGU4ODNjNTExYTIxNTk1MDkiLCJpYXQiOjE3NjM4MTc3MTAsImV4cCI6MTc2NDQyMjUxMH0.xhBGT5_a5ICkqV2DQUexWsQ_5mEicrELME0JHB9vKpE"
+}
